@@ -100,7 +100,7 @@ class Dashboard extends Component
         string $price
     ) {
 
-        $response = new MakeMobilePayment(new PayChanguIntegration($apiKey))
+        $response = (new MakeMobilePayment(new PayChanguIntegration($apiKey)))
             ->execute($chargeId, $price, $phoneNumber);
 
         if ($response instanceof ErrorResponse) {
