@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class PurchaseRequest extends Model
 {
+    protected $fillable = [
+        'status',
+        'metadata',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -15,6 +20,7 @@ class PurchaseRequest extends Model
     {
         return [
             'phone_number' => 'int',
+            'metadata' => 'array',
         ];
     }
 }

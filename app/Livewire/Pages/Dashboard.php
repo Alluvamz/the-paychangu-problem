@@ -28,18 +28,27 @@ class Dashboard extends Component
     public function render()
     {
         $userId = auth()->id();
-        
+        $requests = PurchaseRequest::query()
+            ->where('user_id', $userId)
+            ->latest()
+            ->get();
+
+        foreach ($requests->where('status', 'pending') as $request) {
+            $this->updatePurchaseStatus($request, true);
+        }
+
         return view('livewire.pages.dashboard', [
-            'requests' => PurchaseRequest::query()
-                ->where('user_id', $userId)
-                ->latest()
-                ->get()
+            'requests' => $requests
         ]);
     }
 
-
     public function handleSubmit(): void
     {
+        if (!auth()->check()) {
+            // or handle the unauthenticated user in a way that makes sense for your application
+            return;
+        }
+
         $this->validate([
             'chargeId' => ['required', 'string', 'max:255', 'min:6', Rule::unique(PurchaseRequest::class, 'charge_id')],
             'title' => ['required', 'string', 'max:255'],
@@ -80,7 +89,7 @@ class Dashboard extends Component
             'charge_id' => $this->chargeId,
             'price' => $this->price,
             'title' => $this->title,
-            'status' => $response->status->value,
+            'status' => 'pending',
             'phone_number' => $this->phoneNumber
         ]);
 
@@ -115,85 +124,52 @@ class Dashboard extends Component
 
     public function refreshPurchaseStatus(PurchaseRequest $purchaseRequest)
     {
-        // Ensure the purchase request belongs to the current user
-        $userId = auth()->id();
-        if ($purchaseRequest->user_id !== $userId) {
-            Toaster::error("Unauthorized access");
-            return;
-        }
-
-        try {
-            $response = (new PayChanguIntegration(config('services.paychangu.secret')))
-                ->getDirectChargeDetails($purchaseRequest->charge_id);
-        } catch (PaymentException $error) {
-            Toaster::error("payment error");
-
-            throw ValidationException::withMessages([
-                'chargeId' => sprintf('payment error : %s', $error->getMessage()),
-            ]);
-        } catch (PayChanguIntegrationException $error) {
-            Toaster::error("third party error");
-
-            throw ValidationException::withMessages([
-                'chargeId' => sprintf('third party error : %s', $error->getMessage()),
-            ]);
-        }
-
-        if ($response instanceof ErrorResponse) {
-            throw ValidationException::withMessages([
-                'apiKey' => sprintf('request error : %s', $response->message),
-            ]);
-        }
-
-        $purchaseRequest->update([
-            'status' => $response->status,
-        ]);
-
-        Toaster::success("status updated");
+        $this->updatePurchaseStatus($purchaseRequest);
     }
 
-    public function verifyPurchase(PurchaseRequest $purchaseRequest)
+    private function updatePurchaseStatus(PurchaseRequest $purchaseRequest, $silent = false)
     {
         // Ensure the purchase request belongs to the current user
         $userId = auth()->id();
         if ($purchaseRequest->user_id !== $userId) {
-            Toaster::error("Unauthorized access");
+            if (!$silent) {
+                Toaster::error("Unauthorized access");
+            }
             return;
         }
 
         try {
             $response = (new PayChanguIntegration(config('services.paychangu.secret')))
                 ->getDirectChargeStatus($purchaseRequest->charge_id);
+                
+            if ($response instanceof ErrorResponse) {
+                if (!$silent) {
+                    Toaster::error(sprintf('request error : %s', $response->message));
+                }
+                return;
+            }
+    
+            $purchaseRequest->update([
+                'status' => $response->status,
+            ]);
+    
+            if (!$silent) {
+                Toaster::success("status updated");
+            }
+
         } catch (PaymentException $error) {
-            Toaster::error("payment error");
-
-            throw ValidationException::withMessages([
-                'chargeId' => sprintf('payment error : %s', $error->getMessage()),
-            ]);
+            if (!$silent) {
+                Toaster::error("payment error");
+            }
         } catch (PayChanguIntegrationException $error) {
-            Toaster::error("third party error");
-
-            throw ValidationException::withMessages([
-                'chargeId' => sprintf('third party error : %s', $error->getMessage()),
-            ]);
+            if (!$silent) {
+                Toaster::error("third party error");
+            }
         }
-
-        if ($response instanceof ErrorResponse) {
-            throw ValidationException::withMessages([
-                'apiKey' => sprintf('request error : %s', $response->message),
-            ]);
-        }
-
-        $purchaseRequest->update([
-            'status' => $response->status,
-        ]);
-
-        Toaster::success("status verified");
     }
 
     public function deletePurchase(PurchaseRequest $purchaseRequest)
     {
         $purchaseRequest->delete();
     }
-
 }

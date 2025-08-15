@@ -11,7 +11,6 @@
                     <p class="text-sm text-gray-500">price :{{$request->price}}</p>
 
                     <div class="flex mt-2 items-center gap-2">
-                        <flux:button wire:click="verifyPurchase({{$request->id}})">verify</flux:button>
                         <flux:button wire:click="refreshPurchaseStatus({{$request->id}})">refresh status</flux:button>
                         <flux:button wire:click="deletePurchase({{$request->id}})">delete</flux:button>
                     </div>

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('phone_number');
             $table->string('status');
+            $table->json('metadata')->nullable();
             $table->timestamps();
         });
     }
