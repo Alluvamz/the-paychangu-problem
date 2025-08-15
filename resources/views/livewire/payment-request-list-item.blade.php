@@ -9,35 +9,42 @@ new class extends Component
 {
     public PurchaseRequest $request;
 
-    public function mount():void
+    public function mount(): void
     {
-        if($this->statusIsPending){
-            defer(fn()=>(new UpdatePurchaseStatus($this->purchaseRequest))->execute());
+        if ($this->statusIsPending) {
+            defer(fn () => (new UpdatePurchaseStatus($this->request))->execute());
         }
+    }
+
+    #[Computed]
+    public function wasCreated2minutesAgo()
+    {
+        return $this
+            ->request
+            ->created_at
+            ->greaterThanOrEqualTo(
+                now()->subMinutes(2)
+            );
     }
 
     #[Computed]
     public function statusIsPending()
     {
-        return $this->request->status == 'pending';
+        return $this->request->status == 'pending' && ! $this->wasCreated2minutesAgo;
     }
 
     public function deletePurchase()
     {
-        $this->purchaseRequest->delete();
+        $this->request->delete();
     }
 
     public function refreshPurchaseStatus()
     {
-        (new UpdatePurchaseStatus($this->purchaseRequest))->execute();
+        (new UpdatePurchaseStatus($this->request))->execute();
     }
 }; ?>
 
-<div
-@if ($this->statusIsPending)
-    wire:poll.2s
-@endif
->
+<div @if ($this->statusIsPending) wire:poll.2s="refreshPurchaseStatus" @endif>
     <li class="pb-4">
         <h1 class="font-bold">{{$request->title}}</h1>
         <p class="text-sm text-gray-500">status : {{$request->status}}</p>
@@ -45,7 +52,9 @@ new class extends Component
         <p class="text-sm text-gray-500">price :{{$request->price}}</p>
 
         <div class="flex mt-2 items-center gap-2">
-            <flux:button wire:click="refreshPurchaseStatus">refresh status</flux:button>
+            @if ($request->status != 'success')
+                <flux:button wire:click="refreshPurchaseStatus">refresh status</flux:button>
+            @endif
             <flux:button wire:click="deletePurchase">delete</flux:button>
         </div>
     </li>
