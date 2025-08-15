@@ -20,3 +20,5 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::post('webhookurl', [\App\Http\Controllers\WebhookController::class, 'handle']);

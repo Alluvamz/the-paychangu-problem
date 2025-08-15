@@ -1,18 +1,4 @@
-<div x-data="{ showSuccess: false }"
-    @request-created.window="showSuccess = true; setTimeout(() => showSuccess = false, 3000)">
-    <div class="p-4" x-show="showSuccess" x-transition>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-bold">Success!</strong>
-            <span class="block sm:inline">Purchase request created.</span>
-        </div>
-    </div>
-
-    <div class="my-4">
-
-        <flux:input wire:model="apiKey" label="Paychangu private Api Key"
-            description="dont worry we will not be storing this" />
-    </div>
-
+<div wire:poll.2s>
     <div class="grid grid-cols-2 p-4 mt-4 gap-6">
         <div class="border p-4 rounded-md">
             @if ($requests->isNotEmpty())

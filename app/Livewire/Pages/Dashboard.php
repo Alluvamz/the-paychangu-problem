@@ -23,7 +23,7 @@ class Dashboard extends Component
 
     public string $price = '';
     public string $phoneNumber = '';
-    public string $apiKey = '';
+    
 
     public function render()
     {
@@ -50,12 +50,11 @@ class Dashboard extends Component
                     $fail(sprintf('The mobile number is invalid make sure it is airtel(09*) or tnm(08*) based phone number'));
                 }
             },],
-            'apiKey' => ['required', 'string'],
+            
         ]);
 
         try {
             $response = $this->makePayment(
-                $this->apiKey,
                 $this->chargeId,
                 $this->phoneNumber,
                 $this->price,
@@ -64,13 +63,13 @@ class Dashboard extends Component
             Toaster::error("payment error");
 
             throw ValidationException::withMessages([
-                'apiKey' => sprintf('payment error : %s', $error->getMessage()),
+                'chargeId' => sprintf('payment error : %s', $error->getMessage()),
             ]);
         } catch (PayChanguIntegrationException $error) {
             Toaster::error("third party error");
 
             throw ValidationException::withMessages([
-                'apiKey' => sprintf('third party error : %s', $error->getMessage()),
+                'chargeId' => sprintf('third party error : %s', $error->getMessage()),
             ]);
         }
 
@@ -97,13 +96,12 @@ class Dashboard extends Component
 
 
     private function makePayment(
-        string $apiKey,
         string $chargeId,
         string $phoneNumber,
         string $price
     ) {
 
-        $response = (new MakeMobilePayment(new PayChanguIntegration($apiKey)))
+        $response = (new MakeMobilePayment(new PayChanguIntegration(config('services.paychangu.secret'))))
             ->execute($chargeId, $price, $phoneNumber);
 
         if ($response instanceof ErrorResponse) {
@@ -117,10 +115,6 @@ class Dashboard extends Component
 
     public function refreshPurchaseStatus(PurchaseRequest $purchaseRequest)
     {
-        $this->validate([
-            'apiKey' => ['required', 'string']
-        ]);
-
         // Ensure the purchase request belongs to the current user
         $userId = auth()->id();
         if ($purchaseRequest->user_id !== $userId) {
@@ -129,19 +123,19 @@ class Dashboard extends Component
         }
 
         try {
-            $response = (new PayChanguIntegration($this->apiKey))
+            $response = (new PayChanguIntegration(config('services.paychangu.secret')))
                 ->getDirectChargeDetails($purchaseRequest->charge_id);
         } catch (PaymentException $error) {
             Toaster::error("payment error");
 
             throw ValidationException::withMessages([
-                'apiKey' => sprintf('payment error : %s', $error->getMessage()),
+                'chargeId' => sprintf('payment error : %s', $error->getMessage()),
             ]);
         } catch (PayChanguIntegrationException $error) {
             Toaster::error("third party error");
 
             throw ValidationException::withMessages([
-                'apiKey' => sprintf('third party error : %s', $error->getMessage()),
+                'chargeId' => sprintf('third party error : %s', $error->getMessage()),
             ]);
         }
 
@@ -160,10 +154,6 @@ class Dashboard extends Component
 
     public function verifyPurchase(PurchaseRequest $purchaseRequest)
     {
-        $this->validate([
-            'apiKey' => ['required', 'string']
-        ]);
-
         // Ensure the purchase request belongs to the current user
         $userId = auth()->id();
         if ($purchaseRequest->user_id !== $userId) {
@@ -172,19 +162,19 @@ class Dashboard extends Component
         }
 
         try {
-            $response = (new PayChanguIntegration($this->apiKey))
+            $response = (new PayChanguIntegration(config('services.paychangu.secret')))
                 ->getDirectChargeStatus($purchaseRequest->charge_id);
         } catch (PaymentException $error) {
             Toaster::error("payment error");
 
             throw ValidationException::withMessages([
-                'apiKey' => sprintf('payment error : %s', $error->getMessage()),
+                'chargeId' => sprintf('payment error : %s', $error->getMessage()),
             ]);
         } catch (PayChanguIntegrationException $error) {
             Toaster::error("third party error");
 
             throw ValidationException::withMessages([
-                'apiKey' => sprintf('third party error : %s', $error->getMessage()),
+                'chargeId' => sprintf('third party error : %s', $error->getMessage()),
             ]);
         }
 

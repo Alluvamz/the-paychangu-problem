@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'paychangu' => [
+        'secret' => env('PAYCHANGU_SECRET'),
+    ],
+
 ];
