@@ -21,4 +21,5 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::post('webhookurl', [\App\Http\Controllers\WebhookController::class, 'handle']);
+Route::post('webhook/paychangu', \App\Http\Controllers\WebhookController::class)->name('webhook.paychangu');
+

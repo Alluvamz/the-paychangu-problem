@@ -1,3 +1,0 @@
-the './app/Livewire/Pages/Dashboard.php' has updatePurchaseStatus method
-move it to './app/Actions/UpdatePurchaseStatus.php' execute method
-and clean it up
