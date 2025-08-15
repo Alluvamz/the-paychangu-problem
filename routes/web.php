@@ -6,12 +6,10 @@ use App\Livewire\Settings\Profile;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
 })->name('home');
 
-Route::get('dashboard', \App\Livewire\Pages\Dashboard::class)
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('dashboard', \App\Livewire\Pages\Dashboard::class)->name('dashboard')->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

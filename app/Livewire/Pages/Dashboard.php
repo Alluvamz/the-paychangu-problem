@@ -27,9 +27,11 @@ class Dashboard extends Component
 
     public function render()
     {
+        $userId = auth()->id();
+        
         return view('livewire.pages.dashboard', [
             'requests' => PurchaseRequest::query()
-                ->where('user_id', auth()->id())
+                ->where('user_id', $userId)
                 ->latest()
                 ->get()
         ]);
@@ -50,7 +52,6 @@ class Dashboard extends Component
             },],
             'apiKey' => ['required', 'string'],
         ]);
-
 
         try {
             $response = $this->makePayment(
@@ -73,8 +74,10 @@ class Dashboard extends Component
             ]);
         }
 
+        $userId = auth()->id();
+
         PurchaseRequest::query()->create([
-            'user_id' => auth()->id(),
+            'user_id' => $userId,
             'charge_id' => $this->chargeId,
             'price' => $this->price,
             'title' => $this->title,
@@ -118,6 +121,13 @@ class Dashboard extends Component
             'apiKey' => ['required', 'string']
         ]);
 
+        // Ensure the purchase request belongs to the current user
+        $userId = auth()->id();
+        if ($purchaseRequest->user_id !== $userId) {
+            Toaster::error("Unauthorized access");
+            return;
+        }
+
         try {
             $response = (new PayChanguIntegration($this->apiKey))
                 ->getDirectChargeDetails($purchaseRequest->charge_id);
@@ -146,7 +156,6 @@ class Dashboard extends Component
         ]);
 
         Toaster::success("status updated");
-
     }
 
     public function verifyPurchase(PurchaseRequest $purchaseRequest)
@@ -155,8 +164,14 @@ class Dashboard extends Component
             'apiKey' => ['required', 'string']
         ]);
 
-        try {
+        // Ensure the purchase request belongs to the current user
+        $userId = auth()->id();
+        if ($purchaseRequest->user_id !== $userId) {
+            Toaster::error("Unauthorized access");
+            return;
+        }
 
+        try {
             $response = (new PayChanguIntegration($this->apiKey))
                 ->getDirectChargeStatus($purchaseRequest->charge_id);
         } catch (PaymentException $error) {
