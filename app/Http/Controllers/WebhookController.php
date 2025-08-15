@@ -10,6 +10,14 @@ class WebhookController extends Controller
 {
     public function handle(Request $request)
     {
+        $signature = $request->header('X-PayChangu-Signature');
+        $secret = config('services.paychangu.webhook_secret');
+
+        if (!$this->isValidSignature($signature, $request->getContent(), $secret)) {
+            Log::error('PayChangu Webhook: Invalid signature');
+            return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 401);
+        }
+
         $payload = $request->json()->all();
 
         if (!isset($payload['charge_id']) || !isset($payload['status'])) {
@@ -29,5 +37,16 @@ class WebhookController extends Controller
         ]);
 
         return response()->json(['status' => 'success']);
+    }
+
+    private function isValidSignature(?string $signature, string $payload, string $secret): bool
+    {
+        if ($signature === null) {
+            return false;
+        }
+
+        $expectedSignature = hash_hmac('sha256', $payload, $secret);
+
+        return hash_equals($expectedSignature, $signature);
     }
 }

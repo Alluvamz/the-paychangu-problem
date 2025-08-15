@@ -37,6 +37,7 @@ return [
 
     'paychangu' => [
         'secret' => env('PAYCHANGU_SECRET'),
+        'webhook_secret' => env('PAYCHANGU_WEBHOOK_SECRET'),
     ],
 
 ];
