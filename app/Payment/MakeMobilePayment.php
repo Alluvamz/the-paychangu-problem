@@ -12,8 +12,7 @@ class MakeMobilePayment
 {
     public function __construct(
         private readonly PayChanguIntegration $payChanguIntegration
-    ) {
-    }
+    ) {}
 
     public function execute(string $chargeId, string|int|float $amount, string $mobile): DirectChargeResponseData
     {
@@ -29,7 +28,6 @@ class MakeMobilePayment
         if (! $mobileOperator) {
             throw new PaymentException(sprintf('could not find mobile operator %s, try again', $mobileNumber->operator->value));
         }
-
 
         $reponse = $this->payChanguIntegration->makeDirectCharge(new ChargeMobileRequestData(
             chargeId: $chargeId,

@@ -13,8 +13,7 @@ class MobileNumber
         public string $local,
         public string $international,
         public string $clean,
-    ) {
-    }
+    ) {}
 
     public static function makeFromArray(array $data): self
     {

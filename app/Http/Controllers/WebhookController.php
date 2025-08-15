@@ -18,15 +18,16 @@ class WebhookController extends Controller
         // Log incoming webhook for debugging
         Log::info('PayChangu Webhook: Request received', [
             'headers' => $request->headers->all(),
-            'payload' => $payload
+            'payload' => $payload,
         ]);
 
         // Verify the webhook signature
-        if (!$this->isValidSignature($signature, $payload, $secret)) {
+        if (! $this->isValidSignature($signature, $payload, $secret)) {
             Log::error('PayChangu Webhook: Invalid signature', [
                 'received_signature' => $signature,
-                'expected_signature' => hash_hmac('sha256', $payload, $secret)
+                'expected_signature' => hash_hmac('sha256', $payload, $secret),
             ]);
+
             return response('Invalid signature', 401);
         }
 
@@ -35,14 +36,16 @@ class WebhookController extends Controller
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::error('PayChangu Webhook: Invalid JSON payload', [
                 'payload' => $payload,
-                'error' => json_last_error_msg()
+                'error' => json_last_error_msg(),
             ]);
+
             return response('Invalid JSON payload', 400);
         }
 
         // Validate required fields
-        if (!isset($data['charge_id']) || !isset($data['status'])) {
+        if (! isset($data['charge_id']) || ! isset($data['status'])) {
             Log::error('PayChangu Webhook: Missing required fields', $data);
+
             return response('Missing required fields', 400);
         }
 
@@ -79,15 +82,15 @@ class WebhookController extends Controller
             'status' => $data['status'],
             'metadata' => array_merge($purchaseRequest->metadata ?? [], [
                 'last_webhook_received_at' => now()->toDateTimeString(),
-                'webhook_payload' => $data
-            ])
+                'webhook_payload' => $data,
+            ]),
         ]);
 
         // Log the update
         Log::info('PayChangu Webhook: Purchase request updated', [
             'purchase_request_id' => $purchaseRequest->id,
             'new_status' => $data['status'],
-            'charge_id' => $data['charge_id']
+            'charge_id' => $data['charge_id'],
         ]);
 
         // TODO: Add any additional business logic here (e.g., send notifications, update orders, etc.)
@@ -100,7 +103,7 @@ class WebhookController extends Controller
         }
 
         $computedSignature = hash_hmac('sha256', $payload, $secret);
-        
+
         // Use hash_equals for timing attack prevention
         return hash_equals($computedSignature, $signature);
     }

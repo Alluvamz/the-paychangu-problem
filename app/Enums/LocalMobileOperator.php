@@ -9,7 +9,6 @@ use Alluvamz\PayChanguMobile\Data\MobileOperatorRepository;
 use Alluvamz\PayChanguMobile\PayChanguIntegration;
 use App\Payment\PaymentMobileOperatorCache;
 
-
 enum LocalMobileOperator: string
 {
     case Airtel = 'airtel';
@@ -49,7 +48,6 @@ enum LocalMobileOperator: string
         return (new PaymentMobileOperatorCache(new MobileOperatorRepository($provider)))->findByShortCode($this->value);
     }
 
-
     public static function getDisplayData()
     {
         return [
@@ -64,7 +62,7 @@ enum LocalMobileOperator: string
                 'value' => self::TNM->value,
                 'image' => asset('assets/images/brand/tnm_mpamba.png'),
                 'color' => '#002b5b',
-            ]
+            ],
         ];
     }
 }

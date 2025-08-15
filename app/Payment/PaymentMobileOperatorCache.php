@@ -12,9 +12,7 @@ class PaymentMobileOperatorCache
 {
     private const string cache_key = '_paychangu_mobile_operators';
 
-    public function __construct(private readonly MobileOperatorRepository $mobileOperatorRepository)
-    {
-    }
+    public function __construct(private readonly MobileOperatorRepository $mobileOperatorRepository) {}
 
     public function getAll()
     {

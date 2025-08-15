@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Alluvamz\PayChanguMobile\PayChanguIntegration;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            PayChanguIntegration::class,
+            fn () => new PayChanguIntegration(Config::string('services.paychangu.secret'))
+        );
     }
 
     /**
@@ -21,5 +26,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::unguard();
+
     }
 }
